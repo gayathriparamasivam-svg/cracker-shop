@@ -21,6 +21,11 @@ const PHONE = "919999999999"; // Replace with your WhatsApp number: country code
 const FREE_DELIVERY = 1500;
 const DIWALI = new Date(2026, 10, 8);
 const BG_IMAGE = bg;
+// Optional: import a portrait-cropped photo for phones, e.g.
+// import bgMobile from "./assets/family diwali mobile.png"; then set BG_IMAGE_MOBILE = bgMobile;
+const BG_IMAGE_MOBILE = bg;
+// Which part of the photo stays visible on phones (x% y%). Tweak until the family is framed well.
+const BG_POSITION_MOBILE = "60% center";
 
 // Fonts (add the Google Fonts link in index.html, see instructions)
 const HEADING_FONT = "'Playfair Display', Georgia, serif";
@@ -86,6 +91,18 @@ const theme = createTheme({
         "*": { boxSizing: "border-box", minWidth: 0 },
         "img, video, canvas, svg": { maxWidth: "100%" },
         "::selection": { background: "#ec5a9b", color: "#fff" },
+      },
+    },
+    // 16px inputs on phones stop iOS from zooming the page when a field is focused
+    MuiInputBase: {
+      styleOverrides: {
+        input: { "@media (max-width:600px)": { fontSize: "16px" } },
+      },
+    },
+    // Larger touch targets on touch screens
+    MuiIconButton: {
+      styleOverrides: {
+        root: { "@media (pointer: coarse)": { minWidth: 40, minHeight: 40 } },
       },
     },
     MuiButton: {
@@ -210,28 +227,43 @@ function ProductCard({ product, quantity, favorite, onAdd, onFavorite }) {
       transition: "transform .2s ease, border-color .2s ease, box-shadow .2s ease",
       "@media (hover: hover)": { "&:hover": { transform: "translateY(-5px)", borderColor: `${product.color}88`, boxShadow: "0 16px 38px rgba(0,0,0,.22)" } },
     }}>
-      <Box sx={{ position: "relative", height: { xs: 150, sm: 170, md: 190 }, overflow: "hidden", display: "grid", placeItems: "center", background: `radial-gradient(circle at 50% 115%, ${product.color}66, transparent 68%)` }}>
+      {/* aspectRatio keeps the image proportional on every screen size */}
+      <Box sx={{
+        position: "relative", width: "100%", aspectRatio: { xs: "1 / 1", sm: "4 / 3" },
+        overflow: "hidden", display: "grid", placeItems: "center",
+        background: `radial-gradient(circle at 50% 115%, ${product.color}66, transparent 68%)`,
+      }}>
         {product.image && !imgFailed ? (
           <Box component="img" src={product.image} alt={product.name} loading="lazy" onError={() => setImgFailed(true)}
             sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .4s ease", "@media (hover: hover)": { ".MuiCard-root:hover &": { transform: "scale(1.06)" } } }} />
         ) : (
-          <Typography aria-hidden="true" sx={{ fontSize: { xs: "3.1rem", sm: "3.8rem" }, filter: "drop-shadow(0 8px 18px rgba(0,0,0,.22))" }}>{product.icon}</Typography>
+          <Typography aria-hidden="true" sx={{ fontSize: { xs: "2.6rem", sm: "3.8rem" }, filter: "drop-shadow(0 8px 18px rgba(0,0,0,.22))" }}>{product.icon}</Typography>
         )}
-        {product.tag && <Chip size="small" label={product.tag} sx={{ position: "absolute", top: 12, left: 12, bgcolor: "rgba(19,13,41,.6)", color: "text.primary", backdropFilter: "blur(8px)" }} />}
+        {product.tag && (
+          <Chip size="small" label={product.tag}
+            sx={{ position: "absolute", top: { xs: 6, sm: 12 }, left: { xs: 6, sm: 12 }, height: { xs: 20, sm: 24 }, fontSize: { xs: ".65rem", sm: ".75rem" }, maxWidth: "65%", bgcolor: "rgba(19,13,41,.6)", color: "text.primary", backdropFilter: "blur(8px)" }} />
+        )}
         <Tooltip title={favorite ? "Remove from favourites" : "Add to favourites"}>
           <IconButton aria-label={favorite ? "Remove from favourites" : "Add to favourites"} onClick={() => onFavorite(product.id)}
-            sx={{ position: "absolute", top: 6, right: 6, bgcolor: "rgba(19,13,41,.55)", backdropFilter: "blur(6px)", color: favorite ? "secondary.main" : "text.primary", "&:hover": { bgcolor: "rgba(19,13,41,.75)" } }}>
-            {favorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+            sx={{ position: "absolute", top: { xs: 2, sm: 6 }, right: { xs: 2, sm: 6 }, bgcolor: "rgba(19,13,41,.55)", backdropFilter: "blur(6px)", color: favorite ? "secondary.main" : "text.primary", "&:hover": { bgcolor: "rgba(19,13,41,.75)" } }}>
+            {favorite ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
           </IconButton>
         </Tooltip>
       </Box>
-      <CardContent sx={{ display: "flex", flexDirection: "column", flex: 1, gap: 1, p: { xs: 1.7, sm: 2.2 } }}>
-        <Typography component="h3" sx={{ fontFamily: HEADING_FONT, fontSize: { xs: "1rem", sm: "1.08rem", md: "1.12rem" }, lineHeight: 1.3, fontWeight: 700, overflowWrap: "anywhere" }}>{product.name}</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ minHeight: { xs: "auto", sm: 40 }, overflowWrap: "anywhere" }}>{product.desc}</Typography>
-        <Box sx={{ mt: "auto", pt: 1 }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <Typography variant="h6" color="primary" fontWeight={700}>{rs(product.price)}</Typography>
-            <Button variant={quantity ? "outlined" : "contained"} size="small" sx={{ flexShrink: 0, minWidth: 0, px: 1.6 }} onClick={() => onAdd(product)}>
+
+      <CardContent sx={{ display: "flex", flexDirection: "column", flex: 1, gap: 0.75, p: { xs: 1.25, sm: 2.2 }, "&:last-child": { pb: { xs: 1.25, sm: 2.2 } } }}>
+        <Typography component="h3" sx={{ fontFamily: HEADING_FONT, fontSize: { xs: ".92rem", sm: "1.08rem", md: "1.12rem" }, lineHeight: 1.3, fontWeight: 700, overflowWrap: "anywhere" }}>
+          {product.name}
+        </Typography>
+        <Typography variant="body2" color="text.secondary"
+          sx={{ fontSize: { xs: ".74rem", sm: ".875rem" }, overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: { xs: 2, sm: 3 }, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+          {product.desc}
+        </Typography>
+        <Box sx={{ mt: "auto", pt: 0.75 }}>
+          <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }} gap={{ xs: 0.75, sm: 1 }}>
+            <Typography variant="h6" color="primary" fontWeight={700} sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}>{rs(product.price)}</Typography>
+            <Button variant={quantity ? "outlined" : "contained"} color="primary" size="small"
+              sx={{ width: { xs: "100%", sm: "auto" }, flexShrink: 0, minWidth: 0, px: 1.6 }} onClick={() => onAdd(product)}>
               {quantity ? `Add more · ${quantity}` : "Add to box"}
             </Button>
           </Stack>
@@ -307,12 +339,19 @@ export default function App() {
         aria-hidden="true"
         sx={{
           position: "fixed",
-          inset: 0,
+          top: 0, left: 0, right: 0,
+          height: "100lvh", // large viewport height: no jump when the mobile address bar hides/shows
           zIndex: 0,
-          backgroundImage: `linear-gradient(180deg, rgba(19,13,41,.55) 0%, rgba(19,13,41,.82) 60%, rgba(19,13,41,.95) 100%), url("${BG_IMAGE}")`,
+          backgroundColor: "#130d29",
+          // Phones: darker overlay (text sits on top of the photo) + mobile crop
+          backgroundImage: {
+            xs: `linear-gradient(180deg, rgba(19,13,41,.7) 0%, rgba(19,13,41,.88) 55%, rgba(19,13,41,.97) 100%), url("${BG_IMAGE_MOBILE}")`,
+            md: `linear-gradient(180deg, rgba(19,13,41,.55) 0%, rgba(19,13,41,.82) 60%, rgba(19,13,41,.95) 100%), url("${BG_IMAGE}")`,
+          },
           backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundPosition: { xs: BG_POSITION_MOBILE, md: "center" },
           backgroundRepeat: "no-repeat",
+          transform: "translateZ(0)", // smoother fixed layer on iOS Safari
         }}
       />
       <Fireworks />
@@ -339,13 +378,13 @@ export default function App() {
 
         <Box component="main">
           <Box sx={{
-            minHeight: { xs: "auto", md: "min(760px, calc(100svh - 72px))" },
+            minHeight: { xs: "auto", md: "min(760px, calc(100dvh - 72px))" },
             display: "grid", placeItems: "center", textAlign: "center",
             px: { xs: 1.75, sm: 4 }, py: { xs: 7, sm: 10, md: 14 }, width: "100%", minWidth: 0,
             background: "radial-gradient(ellipse at 50% 35%, rgba(111,63,168,.25), transparent 58%)",
           }}>
             <Container maxWidth="md">
-              <Chip label="Make every celebration memorable" sx={{ mb: 3, px: 0.5, bgcolor: "rgba(255,233,189,.12)", color: LIGHT_GOLD, border: "1px solid rgba(255,233,189,.3)" }} />
+              <Chip label="Make every celebration memorable" sx={{ mb: 3, px: 0.5, maxWidth: "100%", bgcolor: "rgba(255,233,189,.12)", color: LIGHT_GOLD, border: "1px solid rgba(255,233,189,.3)" }} />
               <Typography component="h1" variant="h1" sx={{ fontSize: "clamp(2.25rem, 8.5vw, 6rem)", lineHeight: { xs: 1.1, sm: 1.05 }, overflowWrap: "anywhere", letterSpacing: "-.02em", textShadow: "0 0 36px rgba(255,233,189,.2)" }}>
                 The sky is yours.
                 <Box component="span" sx={{ display: "block", color: LIGHT_GOLD }}>Celebrate bright.</Box>
@@ -354,8 +393,8 @@ export default function App() {
                 Explore celebration essentials from Sivakasi, build your order and send it to us directly on WhatsApp.
               </Typography>
               <Stack direction={{ xs: "column", sm: "row" }} justifyContent="center" spacing={1.5} sx={{ mt: 3.5 }}>
-                <Button fullWidth sx={{ width: { xs: "100%", sm: "auto" } }} variant="contained" size="large" href="#shop">Explore collection</Button>
-                <Button fullWidth sx={{ width: { xs: "100%", sm: "auto" } }} variant="outlined" color="inherit" size="large" href="#safety">Read safety guide</Button>
+                <Button sx={{ width: { xs: "100%", sm: "auto" } }} variant="contained" size="large" href="#shop">Explore collection</Button>
+                <Button sx={{ width: { xs: "100%", sm: "auto" } }} variant="outlined" color="inherit" size="large" href="#safety">Read safety guide</Button>
               </Stack>
               <Countdown />
               <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 2 }}>
@@ -364,20 +403,22 @@ export default function App() {
             </Container>
           </Box>
 
-          <Container id="shop" maxWidth="lg" sx={{ py: { xs: 5, sm: 7, md: 10 }, px: { xs: 0, sm: 1 }, scrollMarginTop: "84px", minWidth: 0 }}>
+          {/* Container gutters restored on mobile so cards no longer touch the screen edges */}
+          <Container id="shop" maxWidth="lg" sx={{ py: { xs: 5, sm: 7, md: 10 }, px: { xs: 2, sm: 3 }, scrollMarginTop: "84px", minWidth: 0 }}>
             <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", md: "end" }} gap={2} sx={{ mb: 3 }}>
               <Box>
                 <Typography component="h2" variant="h2" sx={{ fontSize: "clamp(2rem, 5vw, 3.25rem)" }}>Pick your sparks</Typography>
                 <Typography color="text.secondary" sx={{ mt: 1 }}>Find your favourites, compare prices and build your celebration box.</Typography>
               </Box>
-              <Chip icon={<LocalShippingOutlinedIcon />} label={`Free delivery above ${rs(FREE_DELIVERY)}*`} color="success" variant="outlined" sx={{ alignSelf: { xs: "flex-start", md: "center" } }} />
+              <Chip icon={<LocalShippingOutlinedIcon />} label={`Free delivery above ${rs(FREE_DELIVERY)}*`} color="success" variant="outlined" sx={{ alignSelf: { xs: "flex-start", md: "center" }, maxWidth: "100%" }} />
             </Stack>
 
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mb: 2.5 }}>
               <TextField fullWidth size="small" placeholder="Search products..." value={search} onChange={(event) => setSearch(event.target.value)}
                 inputProps={{ "aria-label": "Search products" }}
                 InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }} />
-              <TextField select size="small" value={sort} onChange={(event) => setSort(event.target.value)} sx={{ minWidth: { xs: "100%", sm: 190 } }} label="Sort by">
+              <TextField select size="small" value={sort} onChange={(event) => setSort(event.target.value)}
+                sx={{ minWidth: { xs: "100%", sm: 190 }, width: { xs: "100%", sm: "auto" } }} label="Sort by">
                 <MenuItem value="featured">Featured</MenuItem>
                 <MenuItem value="price-low">Price: low to high</MenuItem>
                 <MenuItem value="price-high">Price: high to low</MenuItem>
@@ -385,8 +426,19 @@ export default function App() {
               </TextField>
             </Stack>
 
-            <Stack direction="row" alignItems="center" gap={1} useFlexGap sx={{ mb: 2, pb: 0.5, flexWrap: "wrap", width: "100%", "& .MuiChip-root": { maxWidth: "100%" }, "& .MuiChip-label": { whiteSpace: "normal", display: "block" } }}>
-              <FilterListIcon color="action" />
+            {/* Swipeable single row on phones, wraps on desktop */}
+            <Stack direction="row" alignItems="center" gap={1}
+              sx={{
+                mb: 2, pb: 0.5,
+                flexWrap: { xs: "nowrap", md: "wrap" },
+                overflowX: { xs: "auto", md: "visible" },
+                mx: { xs: -2, sm: -3, md: 0 },
+                px: { xs: 2, sm: 3, md: 0 },
+                scrollbarWidth: "none",
+                "&::-webkit-scrollbar": { display: "none" },
+                "& .MuiChip-root": { flexShrink: 0 },
+              }}>
+              <FilterListIcon color="action" sx={{ flexShrink: 0 }} />
               {Object.entries(CATS).map(([key, label]) => (
                 <Chip key={key} label={label} clickable onClick={() => setCategory(key)} color={category === key ? "secondary" : "default"} variant={category === key ? "filled" : "outlined"} />
               ))}
@@ -397,7 +449,11 @@ export default function App() {
               Showing {filteredProducts.length} {filteredProducts.length === 1 ? "product" : "products"}
             </Typography>
             {filteredProducts.length ? (
-              <Box sx={{ width: "100%", minWidth: 0, display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))", md: "repeat(3, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" }, gap: { xs: 1.5, sm: 2, md: 2.5 }, "@media (min-width: 420px) and (max-width: 599.95px)": { gridTemplateColumns: "repeat(2, minmax(0, 1fr))" } }}>
+              <Box sx={{
+                width: "100%", minWidth: 0, display: "grid",
+                gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", md: "repeat(3, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" },
+                gap: { xs: 1, sm: 2, md: 2.5 },
+              }}>
                 {filteredProducts.map((product) => <ProductCard key={product.id} product={product} quantity={cart[product.id] || 0} favorite={favorites.includes(product.id)} onAdd={add} onFavorite={toggleFavorite} />)}
               </Box>
             ) : (
@@ -413,7 +469,7 @@ export default function App() {
           </Container>
 
           <Box id="safety" sx={{ bgcolor: "rgba(36,24,68,.72)", borderTop: "1px solid rgba(255,255,255,.07)", borderBottom: "1px solid rgba(255,255,255,.07)", scrollMarginTop: "80px" }}>
-            <Container maxWidth="lg" sx={{ py: { xs: 5, sm: 7, md: 8 }, minWidth: 0 }}>
+            <Container maxWidth="lg" sx={{ py: { xs: 5, sm: 7, md: 8 }, px: { xs: 2, sm: 3 }, minWidth: 0 }}>
               <Typography component="h2" variant="h2" sx={{ fontSize: "clamp(2rem, 5vw, 3rem)", mb: 1 }}>Celebrate safely</Typography>
               <Typography color="text.secondary" sx={{ mb: 3, maxWidth: "65ch" }}>Fireworks can cause serious injuries and fires. Follow the product label and local rules every time.</Typography>
               <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" }, gap: 2.5 }}>
@@ -440,13 +496,17 @@ export default function App() {
         </Box>
 
         <Fab color="primary" variant="extended" aria-label="Open shopping cart" onClick={() => setCartOpen(true)}
-          sx={{ position: "fixed", right: { xs: 12, sm: 24 }, bottom: "calc(12px + env(safe-area-inset-bottom, 0px))", zIndex: 5, maxWidth: "calc(100vw - 24px)", boxShadow: "0 8px 28px rgba(0,0,0,.35)", fontSize: { xs: ".78rem", sm: ".875rem" }, whiteSpace: "nowrap" }}>
+          sx={{
+            position: "fixed", right: { xs: 12, sm: 24 }, bottom: "calc(12px + env(safe-area-inset-bottom, 0px))", zIndex: 5,
+            maxWidth: "calc(100vw - 24px)", height: { xs: 40, sm: 44 }, minHeight: { xs: 40, sm: 44 },
+            boxShadow: "0 8px 28px rgba(0,0,0,.35)", fontSize: { xs: ".78rem", sm: ".875rem" }, whiteSpace: "nowrap",
+          }}>
           <Badge badgeContent={count} color="secondary" sx={{ mr: 1.5 }}><ShoppingBagIcon /></Badge>
           Your box · {rs(total)}
         </Fab>
 
         <Drawer anchor="right" open={cartOpen} onClose={() => setCartOpen(false)}
-          PaperProps={{ sx: { width: { xs: "100vw", sm: 430 }, maxWidth: "100vw", minWidth: 0, p: { xs: 1.5, sm: 3 }, display: "flex", flexDirection: "column", bgcolor: "background.paper", pb: "calc(16px + env(safe-area-inset-bottom, 0px))", overflowX: "hidden" } }}>
+          PaperProps={{ sx: { width: { xs: "100vw", sm: 430 }, height: "100dvh", maxWidth: "100vw", minWidth: 0, p: { xs: 1.5, sm: 3 }, display: "flex", flexDirection: "column", bgcolor: "background.paper", pb: "calc(16px + env(safe-area-inset-bottom, 0px))", overflowX: "hidden" } }}>
           <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", sm: "center" }} gap={1}>
             <Box>
               <Typography variant="h5">Your celebration box</Typography>
@@ -506,7 +566,10 @@ export default function App() {
           )}
         </Drawer>
 
-        <Snackbar open={Boolean(toast)} autoHideDuration={2200} onClose={() => setToast("")} anchorOrigin={{ vertical: "bottom", horizontal: "left" }}>
+        {/* Centered on phones and lifted above the cart button */}
+        <Snackbar open={Boolean(toast)} autoHideDuration={2200} onClose={() => setToast("")}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          sx={{ bottom: { xs: "calc(68px + env(safe-area-inset-bottom, 0px)) !important", sm: "24px !important" } }}>
           <Alert onClose={() => setToast("")} severity="success" variant="filled" sx={{ width: "100%" }}>{toast}</Alert>
         </Snackbar>
       </Box>
