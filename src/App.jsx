@@ -17,7 +17,7 @@ import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined
 import FilterListIcon from "@mui/icons-material/FilterList";
 import bg from "./assets/family diwali.png";
 
-const PHONE = "919999999999"; // Replace with your WhatsApp number: country code + number
+const PHONE = "918870322567"; // Replace with your WhatsApp number: country code + number
 const FREE_DELIVERY = 1500;
 const DIWALI = new Date(2026, 10, 8);
 const BG_IMAGE = bg;
