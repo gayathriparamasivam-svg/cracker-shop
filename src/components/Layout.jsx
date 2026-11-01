@@ -15,6 +15,20 @@ import { useEstimate } from "../context/EstimateContext";
 import { HEADING_FONT, LIGHT_GOLD, PHONE, SHOP } from "../theme";
 
 const BG_POSITION_MOBILE = "60% center";
+
+// true = your family photo as the background (default). false = plain night sky instead.
+const USE_PHOTO = true;
+
+const stars = [
+  [8, 12], [17, 34], [26, 8], [34, 22], [43, 14], [52, 30], [61, 9], [70, 25],
+  [78, 15], [86, 33], [93, 11], [12, 52], [30, 60], [47, 48], [64, 58], [82, 50], [95, 64], [22, 78], [58, 82], [88, 85],
+].map(([x, y], i) => `radial-gradient(${i % 3 === 0 ? 2 : 1.4}px ${i % 3 === 0 ? 2 : 1.4}px at ${x}% ${y}%, rgba(255,245,230,${i % 2 ? 0.7 : 0.45}), transparent)`);
+const SKY = [
+  ...stars,
+  "radial-gradient(ellipse at 18% 0%, rgba(111,63,168,.38), transparent 55%)",
+  "radial-gradient(ellipse at 85% 10%, rgba(236,90,155,.16), transparent 50%)",
+  "linear-gradient(180deg, #0d0821 0%, #170f38 55%, #130d29 100%)",
+].join(", ");
 const NAV = [
   ["Home", "/"],
   ["About Us", "/about-us"],
@@ -24,6 +38,26 @@ const NAV = [
   ["Contact", "/contact-us"],
   ["Track Order", "/track-order"],
 ];
+
+// Your logo file: public/products/logo.png (change the path here if you move it)
+const LOGO = "/products/logo.png";
+
+function Logo({ height = 40, nameSize = "1.4rem", showName = true }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0 }}>
+      {!failed && (
+        <Box component="img" src={LOGO} alt={showName ? "" : SHOP.name} onError={() => setFailed(true)}
+          sx={{ height, width: "auto", flexShrink: 0, display: "block" }} />
+      )}
+      {(showName || failed) && (
+        <Typography component="span" noWrap sx={{ color: LIGHT_GOLD, fontFamily: HEADING_FONT, fontWeight: 800, fontSize: nameSize, lineHeight: 1.1, letterSpacing: ".01em" }}>
+          {SHOP.name}
+        </Typography>
+      )}
+    </Stack>
+  );
+}
 
 function AnnouncementBar() {
   return (
@@ -48,14 +82,14 @@ function Header() {
   return (
     <AppBar position="sticky" elevation={0} sx={{ bgcolor: "rgba(19,13,41,.9)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
       <Container maxWidth="lg">
-        <Toolbar disableGutters sx={{ minHeight: { xs: 58, md: 68 }, gap: 1 }}>
+        <Toolbar disableGutters sx={{ minHeight: { xs: 70, md: 84 }, gap: 1 }}>
           <IconButton aria-label="Open menu" color="inherit" onClick={() => setMenuOpen(true)} sx={{ display: { md: "none" } }}>
             <MenuIcon />
           </IconButton>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography component={RouterLink} to="/" sx={{ color: LIGHT_GOLD, fontFamily: HEADING_FONT, fontWeight: 800, fontSize: { xs: "1.3rem", md: "1.6rem" }, textDecoration: "none", display: "inline-block" }}>
-              {SHOP.name}
-            </Typography>
+            <Box component={RouterLink} to="/" aria-label={`${SHOP.name} home`} sx={{ display: "inline-flex", textDecoration: "none", maxWidth: "100%" }}>
+              <Logo height={{ xs: 46, md: 60 }} nameSize={{ xs: "1.1rem", md: "1.65rem" }} />
+            </Box>
           </Box>
           <Stack direction="row" spacing={{ md: 0.5, lg: 1.5 }} justifyContent="center" alignItems="center" sx={{ display: { xs: "none", md: "flex" } }}>
             {NAV.filter(([, to]) => to !== "/estimate").map(([label, to]) => (
@@ -74,7 +108,7 @@ function Header() {
       </Container>
 
       <Drawer anchor="left" open={menuOpen} onClose={() => setMenuOpen(false)} PaperProps={{ sx: { width: 260, bgcolor: "background.paper" } }}>
-        <Typography sx={{ p: 2, fontFamily: HEADING_FONT, fontSize: "1.4rem", color: LIGHT_GOLD, fontWeight: 800 }}>{SHOP.name}</Typography>
+        <Box sx={{ p: 2 }}><Logo height={52} nameSize="1.3rem" /></Box>
         <Divider />
         <List>
           {NAV.map(([label, to]) => (
@@ -100,7 +134,7 @@ function Footer() {
       <Container maxWidth="lg" sx={{ py: 5 }}>
         <Box sx={{ display: "grid", gap: 4, gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" } }}>
           <Box>
-            <Typography sx={{ fontFamily: HEADING_FONT, fontSize: "1.4rem", color: LIGHT_GOLD }} fontWeight={800}>{SHOP.name}</Typography>
+            <Logo height={68} nameSize="1.6rem" />
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Celebration essentials from Sivakasi. Select your products and request an estimate.</Typography>
           </Box>
           <Box>
@@ -171,7 +205,7 @@ export default function Layout() {
     <>
       <Box aria-hidden="true" sx={{
         position: "fixed", top: 0, left: 0, right: 0, height: "100lvh", zIndex: 0, backgroundColor: "#130d29",
-        backgroundImage: {
+        backgroundImage: !USE_PHOTO ? SKY : {
           xs: `linear-gradient(180deg, rgba(19,13,41,.7) 0%, rgba(19,13,41,.88) 55%, rgba(19,13,41,.97) 100%), url("${bg}")`,
           md: `linear-gradient(180deg, rgba(19,13,41,.55) 0%, rgba(19,13,41,.82) 60%, rgba(19,13,41,.95) 100%), url("${bg}")`,
         },
